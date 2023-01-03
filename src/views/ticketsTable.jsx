@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Select from "react-select";
-const { tickets } = require("./data");
+// const { tickets } = require("./data");
 const statusOptions = [
   { label: "To Do", value: "11" },
   { label: "In Progress", value: "21" },
@@ -8,14 +8,15 @@ const statusOptions = [
 ];
 
 
-export default function TableTickets() {
-  let [allTickets,setTickets] = useState(tickets)
+export default function TableTickets(props) {
+  let {tickets , setAllTickets} = props
+  // let [allTickets,setTickets] = useState(tickets)
   const handleTicketStatus = (e,index) => {
     console.log("EVENT AND INDEX", e, index)
     let tempAllTickets = [...tickets];
     let tempTicket = tempAllTickets[index];
-    tempTicket.Status = e.label;
-    setTickets(tempAllTickets);
+    tempTicket.Status = e.value;
+    setAllTickets(tempAllTickets);
   }
   return (
     <div className="container">
