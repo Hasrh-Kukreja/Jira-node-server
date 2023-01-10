@@ -3,33 +3,9 @@ const url= 'mongodb://localhost:27017';
 const database = 'Jira_Project'
 const client = new MongoClient(url); 
 
-
-// async function dbconnect()
-// {
-//     let result = await client.connect();
-//     db = result.db(database);
-//    return db.collection('Jiratest');
-// }
-
-// dbconnect().then((resp)=>{
-// resp.find().toArray().then((data)=>{
-// console.log(data)
-// })
-// })
-
-// const main=async ()=>{
-// let data = await dbconnect();
-// data = await data.find().toArray();
-// console.log(data)
-
-// }
-// main()
-// // getdata();/ 
-
 const express = require('express');
 const mongoose = require('mongoose');
 const axios = require("axios");
-// const insertdata = require('./insert');
 let app = express();
 app.use(express.json());
 app.use(function (req, res, next) {
@@ -44,53 +20,18 @@ app.use(function (req, res, next) {
 
 });
 
-// const axios = require("axios");
 
 let port = 2410;
 app.listen(port, () => console.log("Node app listening on port $(port)!"));
 
 
-// const insertdata = require("./insert")
 
-// const sch ={
-//      id:{
-//         type:String,
-//         required:true
-//      },
-//      Name:{
-//         type:String,
-//         required:true
-//      },
-//      Description:{
-//         type:String,
-//         required:true
-//      },
-//      Reporter:{
-//         type:String,
-//         required:true
-//      },
-
-//      Status:{
-//         type:String,
-//         required:true
-//      },
-//      Due_Dateif_any:{
-//         type:Number,
-//         required:true
-//      },
-// }
-// const monmodel=mongoose.model('Jiratest',sch)
-
-// //post
 app.post('/editIssue',async(req,res)=>{
     try{
     console.log('inside the app function');
     let ticketData = req.body;
-    //jira edit api writes here to change the status of the ticket;
     let ticketInDB = await checkTicketInDB(req.body.key);
     ticketInDB.Status = req.body.Status;
-    //update data query for mongoDB\
-    // const val = await data.save();
     res.json(val);
     } catch(error){
         console.log("Error while updating the data in the database")
@@ -110,28 +51,32 @@ app.get("/getIssue", async function (req, res, next) {
     console.log("Hii")
     try {
         let headers = { "Accept-Encoding": "gzip,deflate,compress" }
-        let allPosts = await axios.get("https://demo-project-harsh.atlassian.net/rest/api/2/issue/DEMO-1", {
+        let allPosts = await axios.get("https://demo-project-harsh.atlassian.net/rest/api/latest/search?project=DEMO&jql=order+by+key+ASC&startAt=0", {
             auth: {
               "username": "hunnykukreja05@gmail.com",
-              "password": "Y8HwLx0drmTz9Hgb72kR8761"
+              "password": "9UHKIcEBNMV13asu3yOwB28A"
             }
           });
-     let DataToBeSave = {
-           id : allPosts.data.key,
-           name :allPosts.data.fields.project.name,
-           Description: allPosts.data.fields.description ?? "",
-           Reporter: allPosts.data.fields.reporter.displayName,
-           Status: allPosts.data.fields.status.name,
-           Due_Dateif_any : ""};
-           console.log("######################",DataToBeSave);
-           let keyInDb = await checkTicketInDB(DataToBeSave.key);
-           if(!keyInDb){
-            let insert = await insertdata(DataToBeSave);
-           }
-        
-         console.log("Data Insert ",insert)
-        // console.log("Response",allPosts.data)
-        res.send(allPosts.data)
+          let allIssues = allPosts.data.issues;
+          let issuesArray = [];
+          if(allIssues.length > 0){
+            allIssues.forEach(async (issue)=>{
+                let DataToBeSave = {
+                    id : issue.data.key,
+                    name :issue.data.fields.project.name,
+                    Description: issue.data.fields.description ?? "",
+                    Reporter: issue.data.fields.reporter.displayName,
+                    Status: issue.data.fields.status.name,
+                    Due_Dateif_any : ""};
+                    let keyInDb = await checkTicketInDB(DataToBeSave.key);
+                    if(!keyInDb){
+                     issuesArray.push(DataToBeSave);
+                    }
+            })
+          }
+          let insert = await insertdata(issuesArray);
+        console.log("DATAAAAAAAAA",allPosts.data.issues)
+        res.send(allIssues)
     } catch (error) {
         console.log(error)
         res.send(error)
@@ -165,7 +110,7 @@ async function dbconnect()
 
 const checkTicketInDB = async(key) => {
    try{
-
+     return true;
 
    } catch(error){
     console.log("Error while searching the data in DB");
